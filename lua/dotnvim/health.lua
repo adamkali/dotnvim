@@ -71,7 +71,7 @@ function M.check()
     else
         warn("!!! ==> #telescope# is not installed. You will not be able to use telescope ui features. [telescope](https://github.com/nvim-telescope/telescope.nvim)")
     end
-    if pcall(require, 'nui') then
+    if pcall(require, 'nui.utils') then
         ok("    ==> #nui.nvim# is installed for ui capabilities during bootsrap")
     else
         warn("!!! ==> #nui.nvim# is not installed. You will not be able to use ui features when bootstrapping. [nui](https://github.com/MunifTanjim/nui.nvim)")

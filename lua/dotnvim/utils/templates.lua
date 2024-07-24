@@ -105,4 +105,20 @@ namespace]] .. namespace .. [[
 ]]
 end
 
+M.dotnvim_razor_component_template = function(name, namespace)
+        return [[
+@page "/]] .. name:lower() .. [["
+@namespace ]] .. namespace .. [[
+
+<h3>]] .. name .. [[</h3>
+
+<p>This is the ]] .. name .. [[ component.</p>
+
+@code {
+    // Your C# code for the component goes here
+}
+]]
+    end
+
+
 return M

@@ -54,6 +54,22 @@ function M.bootstrap_api_controller_rw(name, namespace)
     }
 end
 
+function M.bootstrap_razor_component(name, namespace)
+    local path = ''
+    if namespace == nil then
+        local n = dotnet_utils.get_curr_file_and_namespace()
+        path = n.path
+        namespace = n.namespace
+    else
+        -- for now wory about lin and wsl
+        path = string.gsub(namespace, '.', '/')
+    end
+    return {
+        filename = path .. name .. ".cs",
+        filepath = path,
+        buffer = dotnvim_templates.dotnvim_razor_component_template(name, namespace)
+    }
+end
 
 
 M.bootstrappers = {
@@ -85,6 +101,16 @@ M.bootstrappers = {
         end,
         func = function (name, namespace)
             return M.bootstrap_api_controller(name, namespace)
+        end,
+    },
+    {
+        search = "razor_component",
+        name = ".NET Razor Component",
+        callback= function(name, namespace)
+            return dotnvim_templates.dotnvim_razor_component_template(name, namespace)
+        end,
+        func = function (name, namespace)
+            return M.bootstrap_razor_component(name, namespace)
         end,
     }
 }
