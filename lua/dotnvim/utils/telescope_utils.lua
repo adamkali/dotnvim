@@ -37,10 +37,11 @@ M.telescope_select_bootstrapper = function(bootstrappers)
         previewer = previewers.new_buffer_previewer {
             define_preview = function(self, entry, status)
                 local bufnr = self.state.bufnr
-
+                vim.api.nvim_buf_set_option(bufnr, 'modifiable', true)
                 vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {})
                 vim.api.nvim_buf_set_lines(bufnr, 0, -1, false,
                     vim.split(entry.value.callback("PREVIEW", "NAMESPACE"), "\n"))
+                vim.api.nvim_buf_set_option(bufnr, 'modifiable', false)
                 vim.api.nvim_buf_set_option(bufnr, 'filetype', 'cs')
             end
         },
