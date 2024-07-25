@@ -4,9 +4,9 @@ local path_utils = require('dotnvim.utils.path_utils')
 local M = {}
 
 M.get_file_and_namespace = function(path)
-	path = 	path or vim.fn.expand('%:p')
+    path = path or vim.fn.expand('%:p')
 
-	path = string.gsub(path, "\\", "/")
+    path = string.gsub(path, "\\", "/")
 
     local directory = string.match(path, "(.+/)[^/\\]+%..+$")
     local file_name = string.match(path, "[^/\\]+%..+$")
@@ -61,43 +61,59 @@ M.get_file_and_namespace = function(path)
 end
 
 M.get_curr_file_and_namespace = function()
-	local path = vim.fn.expand('%:p')
+    local path = vim.fn.expand('%:p')
 
-	return M.get_file_and_namespace(path)
+    return M.get_file_and_namespace(path)
 end
 
 M.get_namespace_from_path = function(path, directory)
-	local namespace = string.gsub(path, directory, "")
+    local namespace = string.gsub(path, directory, "")
 
-	namespace = string.gsub(namespace, "/", ".")
-	namespace = string.gsub(namespace, "\\", ".")
+    namespace = string.gsub(namespace, "/", ".")
+    namespace = string.gsub(namespace, "\\", ".")
 
-	return namespace
+    return namespace
 end
 
 M.get_tokens_split_by_whitespace = function(entry)
-	entry = string.gsub(entry, "  ", "~")
-	entry = string.gsub(entry, " ", "_")
-	entry = string.gsub(entry, "~", " ")
+    entry = string.gsub(entry, "  ", "~")
+    entry = string.gsub(entry, " ", "_")
+    entry = string.gsub(entry, "~", " ")
 
-	local tokens = {}
-	for v in string.gmatch(entry, "%S+") do
-		v = string.match(v, "%S+")
-		v = string.gsub(v, "_", " ")
-		v = string.gsub(v, '^%s*(.-)%s*$', '%2')
-		v = string.gsub(v, '[ \t]+%f[\r\n%z]', '')
-		table.insert(tokens, v)
-	end
+    local tokens = {}
+    for v in string.gmatch(entry, "%S+") do
+        v = string.match(v, "%S+")
+        v = string.gsub(v, "_", " ")
+        v = string.gsub(v, '^%s*(.-)%s*$', '%2')
+        v = string.gsub(v, '[ \t]+%f[\r\n%z]', '')
+        table.insert(tokens, v)
+    end
 
-	return tokens
+    return tokens
 end
 
-M.opsert = function (path, text)
-	path = 	path or vim.fn.expand('%:p')
-    
+-- returns
+-- {
+--     index = 0,
+--     value = path/to/<any>.csproj
+-- }
+M.get_all_csproj = function()
+    local result = { }
+    local path = vim.fn.getcwd()
+    local cwd = string.gsub(path, "\\", "/")
+    local csproj_files = scandir.scan_dir(cwd, {
+        hidden = false,              -- Include hidden files (those starting with .)
+        only_dirs = false,           -- Include both files and directories
+        depth = 5,                   -- Set the depth of search
+        search_pattern = "%.csproj$" -- Lua pattern to match .csproj files
+    })
+    for index, value in ipairs(csproj_files) do
+        table.insert(result, {
+            index = index,
+            value = value
+        })
+    end
+    return result
 end
 
 return M
-
-
-
