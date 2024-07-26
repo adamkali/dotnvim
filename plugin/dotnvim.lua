@@ -5,6 +5,6 @@ end
 
 Dotnvim = {
     last_used_csproj = nil,
-    build_output_lines = {},
-    build_error_lines = {}
+    running_pid = nil,
+    running_log = nil
 }

@@ -10,7 +10,6 @@ function start_output_buffer(log_name)
     vim.api.nvim_buf_set_option(bufnr, 'filetype', 'log')  -- Set the filetype to 'log' for syntax highlighting
     local date_formatted = os.date("%Y-%m-%d-%H-%M-%S")
     vim.api.nvim_buf_set_name(bufnr, date_formatted .. log_name)
-    vim.cmd('edit') -- Open in a vertical spli
     vim.api.nvim_set_current_buf(bufnr)
     return bufnr
 end
@@ -41,7 +40,6 @@ function M.dotnet_build(csproj_path)
             end)
         end,
     })
-
     job:start()
 end
 
@@ -59,6 +57,8 @@ function M.dotnet_watch(csproj_path)
     local job = Job:new({
         command = 'dotnet',
         args = { 'watch', '--project', csproj_path },
+        interactive = true,
+        detached = true,
         on_stdout = vim.schedule_wrap(function(_, line)
             dotnvim_utils.append_to_buffer(bufnr, { line })
         end),
@@ -71,6 +71,8 @@ function M.dotnet_watch(csproj_path)
             end)
         end,
     })
+    Dotnvim.running_job = job:pid()
+    Dotnvim.running_log = bufnr
 
     job:start()
 end
