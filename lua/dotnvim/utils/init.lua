@@ -120,6 +120,7 @@ end
 M.append_to_buffer = function(bufnr, lines)
     local num_lines = vim.api.nvim_buf_line_count(bufnr)
     vim.api.nvim_buf_set_lines(bufnr, num_lines, num_lines, false, lines)
+    vim.api.nvim_win_set_cursor(0, {num_lines, 0 })
 end
 
 

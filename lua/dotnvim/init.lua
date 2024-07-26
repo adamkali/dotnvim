@@ -30,6 +30,23 @@ function M.build(last)
     end
 end
 
+function M.watch(last)
+    if Dotnvim.last_used_csproj ~= nil and last == true then
+        dotnvim_build.dotnet_build(Dotnvim.last_used_csproj)
+    elseif Dotnvim.last_used_csproj == nil and last == true then
+        error("Dotnvim.last_used_csproj is nil.\nMost likely you have not built anything during this session.")
+        return
+    else
+        --local selection = {}
+        local selections = dotnvim_utils.get_all_csproj()
+        if pcall(require, 'telescope') then
+            telescope_utils.telescope_select_csproj(selections, dotnvim_build.dotnet_watch)
+        else
+            --selection = vim.ui.select(selections)
+        end
+    end
+end
+
 function M.check()
     require'dotnvim.health'.check()
 end
