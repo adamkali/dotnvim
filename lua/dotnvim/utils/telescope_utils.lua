@@ -90,25 +90,23 @@ M.telescope_select_csproj = function(selections, callback)
             results = selections,
             entry_maker = function(entry)
                 return {
-                    value = entry.value,-- <--------------------------------\
-                    display = entry.value,          -- SAME THING         -- |
-                    ordinal = entry.value,                                -- | 
-                }                                                         -- |
-            end                                                           -- |
-        },                                                                -- |
-        sorter = conf.generic_sorter(opts),                               -- |
-        attach_mappings = function(prompt_bufnr, _map)                    -- |
-            actions.select_default:replace(function()                     -- |
-                local selection = action_state.get_selected_entry()       -- |
-                actions.close(prompt_bufnr)                               -- |
-                callback(selection.value)
-                --               ^\__________________________________________/
+                    value = entry.value,                            -- <-- -----------------\
+                    display = entry.value,                          -- SAME THING            |
+                    ordinal = entry.value,                          -- /--------------------/
+                }                                                   -- |
+            end                                                     -- |
+        },                                                          -- |
+        sorter = conf.generic_sorter(opts),                         -- |
+        attach_mappings = function(prompt_bufnr, _map)              -- |
+            actions.select_default:replace(function()               -- |
+                local selection = action_state.get_selected_entry() -- |
+                actions.close(prompt_bufnr)                         -- |
+                callback(selection.value)                           
+                --               ^\____________________________________/
             end)
             return true
         end,
     }):find()
-
 end
 
 return M
-

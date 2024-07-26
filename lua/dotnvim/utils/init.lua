@@ -116,4 +116,11 @@ M.get_all_csproj = function()
     return result
 end
 
+-- Function to append lines to a buffer
+M.append_to_buffer = function(bufnr, lines)
+    local num_lines = vim.api.nvim_buf_line_count(bufnr)
+    vim.api.nvim_buf_set_lines(bufnr, num_lines, num_lines, false, lines)
+end
+
+
 return M

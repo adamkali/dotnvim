@@ -12,12 +12,12 @@ M.default_params = {
 }
 
 -- @param last bool
-local function command_build(last)
+function M.build(last)
     -- also do one that asks if not passed in?
-    if vim.g.dotnvim.last_used_csproj ~= nil and last == true then
-        dotnvim_build.dotnet_build(vim.g.dotnvim.last_used_csproj)
-    elseif vim.g.dotnvim.last_used_csproj == nil and last == true then
-        error("vim.g.dotnvim.last_used_csproj is nil")
+    if Dotnvim.last_used_csproj ~= nil and last == true then
+        dotnvim_build.dotnet_build(Dotnvim.last_used_csproj)
+    elseif Dotnvim.last_used_csproj == nil and last == true then
+        error("Dotnvim.last_used_csproj is nil.\nMost likely you have not built anything during this session.")
         return
     else
         --local selection = {}
@@ -45,14 +45,6 @@ function M.bootstrap()
     end
 end
 
-
-function M.build()
-    command_build()
-end
-
-function M.build_last()
-    command_build(true)
-end
 
 function M.setup()
 end
