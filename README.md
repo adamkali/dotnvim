@@ -6,6 +6,7 @@
 
 ## Table of Contents
 
+- [Features](#features)
 - [Sample Config](#sample-config)
 - [Required Executables](#required-executables)
 - [Neovim Plugin Dependencies](#neovim-plugin-dependencies)
@@ -20,25 +21,47 @@ local function dotnet_bootstrap()
     dotnet.bootstrap()
 end
 
-local function dotnet_build()
-    local dotnet = require 'dotnvim'
-    dotnet.build(false)
-end
-
 local function dotnet_build_last()
     local dotnet = require 'dotnvim'
     dotnet.build(true)
 end
 
+local function dotnet_watch_last()
+    local dotnet = require('dotnvim')
+    dotnet.watch(true)
+end
+
+local function dotnet_restart_watch()
+    local dotnet = require('dotnvim')
+    dotnet.restart_watch()
+end
+
+local function dotnet_shutdown_watch()
+    local dotnet = require('dotnvim')
+    dotnet.shutdown_watch()
+end
+
 return {
     {
-        'adamkali/dotnvim',
+        dir = 'adamkali/dotnvim',
         ft = { 'cs', 'vb', 'csproj', 'sln', 'slnx', 'props', 'csx', 'targets' },
         keys = {
-            { '=ds', dotnet_bootstrap, desc = 'Bootstrap Class' },
-            { '=db', dotnet_build, desc = 'Build Project' },
-            { '=dB', dotnet_build_last, desc = 'Build Last Project' },
+            { '<leader>ds', dotnet_bootstrap, desc = 'Bootstrap Class' },
+           { '<leader>db', dotnet_build_last, desc = 'Build Last Project' },
+            { '<leader>dw', dotnet_watch_last, desc = 'Watch Last Project' },
+            { '<F10>', dotnet_restart_watch, desc = 'Restart Watch Job'},
+            { '<F34>', dotnet_shutdown_watch, desc = 'Shutdown Watch Job'}
         },
+        opts = {
+            builders = {
+                -- will append -lp https always.
+                -- 
+                https_launch_setting_always = true,
+            },
+            ui = {
+                no_pretty_uis = false
+            }
+        }
     },
 }
 ```
@@ -66,15 +89,30 @@ Bootstraps a MVC controller with the CRUD methods
 ### `require('dotnvim').build(last)`
 Builds a project based on the Solution root. (i.e. where the .sln). The `last` parameter refers to if you have already built a project, and you pass in `true`, dotnvim will build the last used project as its solution.
 
+### `require('dotnvim').watch(last)`
+starts a watch process on the Solution root. (i.e. where the .sln).
+
+- `last` if last is true the plugin will use the `.csproj` stored in requireDotnvim
+
+> [!WARNING]
+> At the moment properly managing the pid state is borked. [see dotnet issue #20152](https://github.com/dotnet/aspnetcore/issues/20152). As a result, `dotnvim` will be tackling this in a new issue [#8](https://github.com/adamkali/dotnvim/issues/8).
+
+
 ## Required Executables
 
 - `fd`
 - `dotnet`
 
+### Required for Debugging
+- netcoredbg
+
 ## Neovim Plugin Dependencies
 
 - `plenary`
 - `nvim-treesitter`
+
+### Required for Debugging
+- `nvim-dap`
 
 ## Neovim Plugin Optional Dependencies
 
