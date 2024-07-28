@@ -116,11 +116,39 @@ M.get_all_csproj = function()
     return result
 end
 
+M.get_csproj_dll = function ()
+    result = nil
+    path = vim.fn.getcwd()
+    local cwd = string.gsub(path, "\\", "/")
+    local project_name = string.gsub(cdw, "%.csproj$", ".dll")
+    local csproj_files = scandir.scan_dir(cwd, {
+        hidden = false,              -- Include hidden files (those starting with .)
+        only_dirs = false,           -- Include both files and directories
+        depth = 5,                   -- Set the depth of search
+        search_pattern = "" -- Lua pattern to match .csproj files
+    })
+    return result[1]
+end
+
 -- Function to append lines to a buffer
-M.append_to_buffer = function(bufnr, lines)
-    local num_lines = vim.api.nvim_buf_line_count(bufnr)
-    vim.api.nvim_buf_set_lines(bufnr, num_lines, num_lines, false, lines)
-    vim.api.nvim_win_set_cursor(0, {num_lines, 0 })
+M.append_to_buffer = function (bufnr, lines)
+    -- Get the current number of lines in the buffer
+    local line_count = vim.api.nvim_buf_line_count(bufnr)
+
+    -- Insert lines at the end of the buffer
+    vim.api.nvim_buf_set_lines(bufnr, line_count, line_count, false, lines)
+
+    -- Get the window displaying the buffer
+    local windows = vim.fn.win_findbuf(bufnr)
+    if #windows > 0 then
+        local win = windows[1]
+        
+        -- Move cursor to the end of the buffer safely
+        local last_line = vim.api.nvim_buf_line_count(bufnr)
+        if last_line > 0 then
+            vim.api.nvim_win_set_cursor(win, { last_line, 0 })
+        end
+    end
 end
 
 

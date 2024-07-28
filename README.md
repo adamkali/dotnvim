@@ -66,6 +66,12 @@ Bootstraps a MVC controller with the CRUD methods
 ### `require('dotnvim').build(last)`
 Builds a project based on the Solution root. (i.e. where the .sln). The `last` parameter refers to if you have already built a project, and you pass in `true`, dotnvim will build the last used project as its solution.
 
+### `require('dotnvim').watch(last)`
+starts a watch process on the Solution root. (i.e. where the .sln).
+
+- `last` if last is true the plugin will use the `.csproj` stored in requireDotnvim
+
+
 ## Required Executables
 
 - `fd`
