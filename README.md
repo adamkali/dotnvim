@@ -43,7 +43,7 @@ end
 
 return {
     {
-        dir = '/home/adamkali/git/dotnvim',
+        dir = 'adamkali/dotnvim',
         ft = { 'cs', 'vb', 'csproj', 'sln', 'slnx', 'props', 'csx', 'targets' },
         keys = {
             { '<leader>ds', dotnet_bootstrap, desc = 'Bootstrap Class' },
