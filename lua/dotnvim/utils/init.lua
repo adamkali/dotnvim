@@ -1,7 +1,40 @@
 local scandir = require('plenary.scandir')
 local path_utils = require('dotnvim.utils.path_utils')
+local telescope_utils = require('dotnvim.utils.telescope_utils')
 
 local M = {}
+
+-- @param callback func(csproj)
+M.select_csproj = function(callback)
+    local selections = M.get_all_csproj()
+    if pcall(require, 'telescope') and DotnvimConfig.ui.no_pretty_uis ~= true then
+        telescope_utils.telescope_select_csproj(selections, callback)
+    else
+        local items = {}
+        for _, file in ipairs(selections) do
+            table.insert(items, file.value)
+        end
+        vim.ui.select(items, {
+            prompt = 'Select a .csproj file:',
+            format_item = function(item)
+                return item
+            end
+        }, function(choice)
+            if choice then
+                callback(choice)
+            else
+                print("No file selected")
+            end
+        end)
+    end
+end
+
+-- stolen from nvim-dap-go -- thank you <3
+M.load_module = function (module_name, source)
+    local ok, module = pcall(require, module_name)
+    assert(ok, string.format(source .. " dependency error: %s not installed", module_name))
+    return module
+end
 
 M.get_file_and_namespace = function(path)
     path = path or vim.fn.expand('%:p')
@@ -116,18 +149,21 @@ M.get_all_csproj = function()
     return result
 end
 
-M.get_csproj_dll = function ()
+M.get_dll_from_csproj = function (csproj)
     result = nil
-    path = vim.fn.getcwd()
-    local cwd = string.gsub(path, "\\", "/")
+    local cwd = string.gsub(csproj, "\\", "/")
     local project_name = string.gsub(cdw, "%.csproj$", ".dll")
-    local csproj_files = scandir.scan_dir(cwd, {
+    local dlls = scandir.scan_dir(cwd, {
         hidden = false,              -- Include hidden files (those starting with .)
         only_dirs = false,           -- Include both files and directories
         depth = 5,                   -- Set the depth of search
         search_pattern = "" -- Lua pattern to match .csproj files
     })
-    return result[1]
+    if #dlls == 1 then
+        return dlls[1]
+    else 
+        error(csproj .. "has not been built yet.")
+    end
 end
 
 -- Function to append lines to a buffer

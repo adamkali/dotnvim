@@ -88,7 +88,7 @@ function M.dotnet_build(csproj_path)
     job:start()
 end
 
-function M.start_dotnet_run(csproj_path)
+function M.start_dotnet_watch(csproj_path)
     -- Ensure the provided path is a .csproj file
     if not csproj_path or not csproj_path:match("%.csproj$") then
         if not Dotnvim.last_used_csproj or not Dotnvim.last_used_csproj:match("%.csproj$") then
@@ -121,9 +121,9 @@ function M.start_dotnet_run(csproj_path)
     Dotnvim.running_watch:start()
 end
 
-function M.restart_dotnet_run()
+function M.restart_dotnet_watch()
     M.kill_dotnet_process()
-    M.start_dotnet_run(Dotnvim.last_used_csproj)
+    M.start_dotnet_watch(Dotnvim.last_used_csproj)
 end
 
 return M
