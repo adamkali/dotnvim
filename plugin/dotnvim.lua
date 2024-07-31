@@ -26,7 +26,6 @@ DotnvimConfig.ui = {
 }
 
 DotnvimConfig.dap = {
-    configurations = {},
     adapter = {
         path = "netcoredbg",
         initialize_timeout_sec = 20,

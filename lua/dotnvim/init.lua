@@ -65,7 +65,17 @@ M.shutdown_watch = function()
     dotnvim_builders.kill_dotnet_process()
 end
 
+function M.select_csproj(callback)
+    if type(callback) == "function" then
+        return dotnvim_utils.select_csproj(callback)
+    end
+    error("Callback passed to select_csproj is nil")
+end
+
 function M.setup(config)
+    config = config or {}
+    print("setup")
+
     configurator.configurate_builders(config.builders)
     configurator.configurate_ui(config.ui)
     configurator.configurate_dap(config.dap)

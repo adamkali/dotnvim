@@ -2,23 +2,13 @@ local dotnvim_util = require('dotnvim.utils')
 local configurator = {}
 local load_module = dotnvim_util.load_module
 
-configurator.configurate_adaptor = function(config)
+configurator.configurate_adapter = function()
     local dap = load_module("dap", "dotnvim.dap")
-    local args = { '--interpreter=vscode' }
-    vim.list_extend(args, config.args)
 
     dap.adapters.coreclr = {
-        type = "server",
-        port = config.port,
-        executable = {
-            command = config.path,
-            args = args,
-            detached = config.detached,
-            cwd = config.cwd,
-        },
-        options = {
-            initiaize_timeout_sec = config.initiaize_timeout_sec,
-        }
+        type = 'executable',
+        command = 'netcoredbg',
+        args = { '--interpreter=vscode' }
     }
 end
 
@@ -53,31 +43,27 @@ configurator.configurate_dap = function(config_dap)
             name = 'Launch Last Built .csproj',
             request = 'launch',
             program = function()
-                local using_dll = ""
-                local function set_dll(csproj)
-                    return dotnvim_util.get_dll_from_csproj(csproj)
+                if Dotnvim.last_used_csproj == nil then
+                    -- TODO: Please make intelligent lookup based on solution.
+                    -- - [ ] find out how the editor that shall not be named specifies default projects.
+                    -- - [ ] find out better async call for calling an io process in lua and not have it jump over return 
+                    print("Please Build your project First")
                 end
-                if Dotnvim.last_used_csproj ~= nil then
-                    set_dll(Dotnvim.last_used_csproj)
-                else
-                    dotnvim_util.select_csproj(set_dll)
-                end
-                return using_dll
+                return dotnvim_util.get_dll_from_csproj(Dotnvim.last_used_csproj)
             end
         }
-
     }
+
     if config_dap ~= nil then
         vim.tbl_extend(configurations, config_dap.configurations)
-        DotnvimConfig.dap.configurations = configurations
     end
 
     local dap = load_module("dap", "dotnvim.dap")
-    configurator.configurate_adapter(config.adapter)
+    configurator.configurate_adapter()
+    dap.configurations.cs = {}
 
-    for _, config in ipairs(DotnvimConfig.dap.configurations) do
+    for _, config in ipairs(configurations) do
         if config.type == "coreclr" then
-            vim.print(config)
             table.insert(dap.configurations.cs, config)
         end
     end
