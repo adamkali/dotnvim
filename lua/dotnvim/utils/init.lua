@@ -1,7 +1,40 @@
 local scandir = require('plenary.scandir')
 local path_utils = require('dotnvim.utils.path_utils')
+local telescope_utils = require('dotnvim.utils.telescope_utils')
 
 local M = {}
+
+-- @param callback func(csproj)
+M.select_csproj = function(callback)
+    local selections = M.get_all_csproj()
+    if pcall(require, 'telescope') and DotnvimConfig.ui.no_pretty_uis ~= true then
+        telescope_utils.telescope_select_csproj(selections, callback)
+    else
+        local items = {}
+        for _, file in ipairs(selections) do
+            table.insert(items, file.value)
+        end
+        vim.ui.select(items, {
+            prompt = 'Select a .csproj file:',
+            format_item = function(item)
+                return item
+            end
+        }, function(choice)
+            if choice then
+                callback(choice)
+            else
+                print("No file selected")
+            end
+        end)
+    end
+end
+
+-- stolen from nvim-dap-go -- thank you <3
+M.load_module = function(module_name, source)
+    local ok, module = pcall(require, module_name)
+    assert(ok, string.format(source .. " dependency error: %s not installed", module_name))
+    return module
+end
 
 M.get_file_and_namespace = function(path)
     path = path or vim.fn.expand('%:p')
@@ -98,7 +131,7 @@ end
 --     value = path/to/<any>.csproj
 -- }
 M.get_all_csproj = function()
-    local result = { }
+    local result = {}
     local path = vim.fn.getcwd()
     local cwd = string.gsub(path, "\\", "/")
     local csproj_files = scandir.scan_dir(cwd, {
@@ -116,22 +149,35 @@ M.get_all_csproj = function()
     return result
 end
 
-M.get_csproj_dll = function ()
-    result = nil
-    path = vim.fn.getcwd()
-    local cwd = string.gsub(path, "\\", "/")
-    local project_name = string.gsub(cdw, "%.csproj$", ".dll")
-    local csproj_files = scandir.scan_dir(cwd, {
-        hidden = false,              -- Include hidden files (those starting with .)
-        only_dirs = false,           -- Include both files and directories
-        depth = 5,                   -- Set the depth of search
-        search_pattern = "" -- Lua pattern to match .csproj files
+function M.get_dll_from_csproj(csproj_path)
+    local project_name_with_extension = csproj_path:match("([^/\\]+%.csproj)$")
+    if not project_name_with_extension then
+        error("Invalid .csproj path: " .. (csproj_path or "nil"))
+    end
+
+    local project_name = project_name_with_extension:gsub("%.csproj$", "")
+    local dll_name = project_name .. ".dll"
+    local lookin = csproj_path:gsub(project_name_with_extension, "")
+    print(lookin)
+
+    -- Scan for the .dll file in the specified directory
+    local dlls = scandir.scan_dir(lookin, {
+        hidden = false,               -- Include hidden files (those starting with .)
+        only_dirs = false,            -- Include both files and directories
+        depth = 5,                    -- Set the depth of search
+        search_pattern = dll_name,    -- Lua pattern to match the .dll file
     })
-    return result[1]
+
+    print(#dlls)
+    if #dlls > 0 then
+        return dlls[1]
+    else
+        error(csproj_path .. " has not been built yet.")
+    end
 end
 
 -- Function to append lines to a buffer
-M.append_to_buffer = function (bufnr, lines)
+M.append_to_buffer = function(bufnr, lines)
     -- Get the current number of lines in the buffer
     local line_count = vim.api.nvim_buf_line_count(bufnr)
 
@@ -142,7 +188,7 @@ M.append_to_buffer = function (bufnr, lines)
     local windows = vim.fn.win_findbuf(bufnr)
     if #windows > 0 then
         local win = windows[1]
-        
+
         -- Move cursor to the end of the buffer safely
         local last_line = vim.api.nvim_buf_line_count(bufnr)
         if last_line > 0 then

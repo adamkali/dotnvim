@@ -3,7 +3,6 @@ if 1 ~= vim.fn.has "nvim-0.9.0" then
     return
 end
 
-
 -- @param last_used_csproj string
 -- @param running_watch plenary.Job
 Dotnvim = {
@@ -24,4 +23,17 @@ DotnvimConfig.builders = {
 -- @param no_pretty_uis boolean
 DotnvimConfig.ui = {
     no_pretty_uis = false
+}
+
+DotnvimConfig.dap = {
+    adapter = {
+        path = "netcoredbg",
+        initialize_timeout_sec = 20,
+        port = "${port}",
+        args = {},
+        -- XXX: detached = vim.fn.has("win32") == 0, make sure that this is correct on windows
+        tests = {
+            verbose = false,
+        },
+    }
 }

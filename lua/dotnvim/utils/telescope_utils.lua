@@ -1,8 +1,7 @@
-local dotnvim_t = require "dotnvim.utils.templates"
-local utils     = require "dotnvim.utils"
 local function extract_directory(file_path)
     return file_path:match("(.*/)")
 end
+
 local M = {}
 
 local default_out_space = {
@@ -81,7 +80,6 @@ M.telescope_select_csproj = function(selections, callback)
     local conf = require('telescope.config').values
     local actions = require('telescope.actions')
     local action_state = require('telescope.actions.state')
-    local result_idx = nil
 
     local opts = {}
     pickers.new(opts, {
@@ -101,7 +99,7 @@ M.telescope_select_csproj = function(selections, callback)
             actions.select_default:replace(function()               -- |
                 local selection = action_state.get_selected_entry() -- |
                 actions.close(prompt_bufnr)                         -- |
-                callback(selection.value)                           
+                callback(selection.value)
                 --               ^\____________________________________/
             end)
             return true

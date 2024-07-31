@@ -26,10 +26,6 @@ function M.check()
 
     local function exe_check(binary)
         local found = vim.fn.executable(binary) == 1
-        -- if not found  and is_win then
-        --     binary = binary .. ".exe"
-        --     found = vim.fn.executable(binary) == 1
-        -- end
         if found then
             local handle = io.popen(binary .. " --version")
             if handle ~= nil then
@@ -45,6 +41,7 @@ function M.check()
     info("Checking Required Executables")
     local dotnet_exe, dotnet_vers = exe_check("dotnet")
     local fd_exe, fd_vers = exe_check("fd")
+    local netcoredbg_exe, netcoredbg_vers = exe_check("netcoredbg")
     if dotnet_exe then
         ok("    ==> #dotnet# is installed -> "..dotnet_vers)
     else
@@ -55,6 +52,12 @@ function M.check()
         ok("    ==> #fd# is installed -> "..fd_vers)
     else
         error("!!! ==> #fd# is not installed, make sure fd is in $PATH")
+    end
+
+    if netcoredbg_exe then
+        ok("    ==> #netcoredbg# is installed -> "..netcoredbg_exe)
+    else
+        error("!!! ==> #netcoredbg# is not installed, make sure netcoredbg is in $PATH")
     end
     -- Check the Required Dependencies
     info("Checking Required Dependencies")

@@ -3,8 +3,8 @@ local M = {}
 -- [[
 --      Credit to [MoaidHathot](https://github.com/MoaidHathot/dotnet.nvim) on github for the utils that i am stealing here
 -- ]]
-local dotnet_utils = require 'dotnvim.utils'
-local dotnvim_templates = require'dotnvim.utils.templates'
+local dotnet_utils = require('dotnvim.utils')
+local dotnvim_templates = require('dotnvim.utils.templates')
 
 function M.bootstrap_model(name, namespace)
     local path = ''
@@ -116,5 +116,3 @@ M.bootstrappers = {
 }
 
 return M
-
---require("luasnip.loaders.from_lua").load({paths = "~/.config/nvim/LuaSnip/"})

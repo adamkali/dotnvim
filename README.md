@@ -1,3 +1,7 @@
+<a href="https://dotfyle.com/plugins/adamkali/dotnvim">
+	<img src="https://dotfyle.com/plugins/adamkali/dotnvim/shield?style=for-the-badge" />
+</a>
+
 # dotnvim (Unstable)
 
 ## Introduction
@@ -47,7 +51,7 @@ return {
         ft = { 'cs', 'vb', 'csproj', 'sln', 'slnx', 'props', 'csx', 'targets' },
         keys = {
             { '<leader>ds', dotnet_bootstrap, desc = 'Bootstrap Class' },
-           { '<leader>db', dotnet_build_last, desc = 'Build Last Project' },
+            { '<leader>db', dotnet_build_last, desc = 'Build Last Project' },
             { '<leader>dw', dotnet_watch_last, desc = 'Watch Last Project' },
             { '<F10>', dotnet_restart_watch, desc = 'Restart Watch Job'},
             { '<F34>', dotnet_shutdown_watch, desc = 'Shutdown Watch Job'}

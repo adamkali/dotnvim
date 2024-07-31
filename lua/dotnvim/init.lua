@@ -1,9 +1,10 @@
 local M = {}
 
-local bootstrappers = require 'dotnvim.bootstrappers'
-local telescope_utils = require 'dotnvim.utils.telescope_utils'
+local bootstrappers = require('dotnvim.bootstrappers')
+local telescope_utils = require('dotnvim.utils.telescope_utils')
+local dotnvim_builders = require('dotnvim.builder')
 local dotnvim_utils = require('dotnvim.utils')
-local dotnvim_build = require('dotnvim.builder')
+local configurator = require('dotnvim.config')
 local Job = require 'plenary.job'
 
 M.default_params = {
@@ -23,28 +24,17 @@ Dotnvim = {
 function M.build(last)
     -- also do one that asks if not passed in?
     if Dotnvim.last_used_csproj ~= nil and last == true then
-        dotnvim_build.dotnet_build(Dotnvim.last_used_csproj)
+        dotnvim_builders.dotnet_build(Dotnvim.last_used_csproj)
     else
-        --local selection = {}
-        local selections = dotnvim_utils.get_all_csproj()
-        if pcall(require, 'telescope') and DotnvimConfig.ui.no_pretty_uis ~= true then
-            telescope_utils.telescope_select_csproj(selections, dotnvim_build.dotnet_build)
-        else
-            --selection = vim.ui.select(selections)
-        end
+        dotnvim_utils.select_csproj(dotnvim_builders.dotnet_build)
     end
 end
 
 function M.watch(last)
     if Dotnvim.last_used_csproj ~= nil and last == true then
-        dotnvim_build.dotnet_watch(Dotnvim.last_used_csproj)
+        dotnvim_builders.dotnet_watch(Dotnvim.last_used_csproj)
     else
-        local selections = dotnvim_utils.get_all_csproj()
-        if pcall(require, 'telescope') and DotnvimConfig.ui.no_pretty_uis ~= true then
-            telescope_utils.telescope_select_csproj(selections, dotnvim_build.start_dotnet_run)
-        else
-            --selection = vim.ui.select(selections)
-        end
+        dotnvim_utils.select_csproj(dotnvim_builders.dotnet_watch)
     end
 end
 
@@ -63,39 +53,32 @@ function M.bootstrap()
     end
 end
 
-function M.last_ran_csproj()
-    -- add pretty ui
+function M.query_last_ran_csproj()
     return print(Dotnvim.last_used_csproj)
 end
 
-local CTRL_C = string.char(3)
-local CTRL_R = string.char(18)
-
 function M.restart_watch()
-    dotnvim_build.restart_dotnet_run()
+    dotnvim_builders.restart_dotnet_watch()
 end
 
 M.shutdown_watch = function()
-    dotnvim_build.kill_dotnet_process()
+    dotnvim_builders.kill_dotnet_process()
+end
+
+function M.select_csproj(callback)
+    if type(callback) == "function" then
+        return dotnvim_utils.select_csproj(callback)
+    end
+    error("Callback passed to select_csproj is nil")
 end
 
 function M.setup(config)
-    if config.builders ~= nil then
-        if config.builders.build_output_callback ~= nil then
-            assert(type(config.builders.build_output_callback), type(function() end))
-            DotnvimConfig.builders.build_output_callback = config.builders.build_output_callback
-        end
-        if config.builders.https_launch_setting_always ~= nil then
-            assert(type(config.builders.https_launch_setting_always), type(true))
-            DotnvimConfig.builders.https_launch_setting_always = config.builders.https_launch_setting_always
-        end
-    end
-    if config.ui ~= nil then
-        if config.ui.no_pretty_uis ~= nil then
-            assert(type(config.ui.no_pretty_uis), type(true))
-            DotnvimConfig.ui.no_pretty_uis = config.ui.no_pretty_uis
-        end
-    end
+    config = config or {}
+    print("setup")
+
+    configurator.configurate_builders(config.builders)
+    configurator.configurate_ui(config.ui)
+    configurator.configurate_dap(config.dap)
 end
 
 return M
