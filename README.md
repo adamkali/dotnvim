@@ -11,6 +11,10 @@
 
 **dotnvim** is the .NET tooling for Neovim that you've always wanted. .NET development in Neovim can be challenging due to the lack of robust tooling, especially compared to the support available for other languages like Rust with [rustaceanvim](https://github.com/mrcjkb/rustaceanvim), and of course the ide that shall not be named. This plugin aims to fill that gap, providing a seamless development experience for .NET developers who prefer Neovim. Enjoy!
 
+If you like what `dotnvim` is doing here, want to see more, or just not ready to add it to your config: please leave a star, it means the world. 
+
+dotfyle sample config comming soon...
+
 ## Table of Contents
 
 - [Features](#features)
@@ -161,6 +165,9 @@ Then use ure own dap configuration as usual!.
 
 - `telescope`
 - `nui.nvim`
+
+## Contributing 
+Thank you! please see [CONTRIBUTING](https://github.com/adamkali/dotnvim/blob/main/CONTRIBUTING.md) and check out the [Issues](https://github.com/adamkali/dotnvim/issues)
 
 ## Credits
 
