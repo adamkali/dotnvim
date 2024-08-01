@@ -67,6 +67,9 @@ return {
             },
             ui = {
                 no_pretty_uis = false
+            },
+            dap = {
+		configurations = {}
             }
         }
     },
@@ -101,6 +104,39 @@ starts a watch process on the Solution root. (i.e. where the .sln).
 
 - `last` if last is true the plugin will use the `.csproj` stored in requireDotnvim
 
+### Dap support 
+`dotnvim` has support for debugging based on `.vscode/launch.json` and the ability to add configurations in `require().setup({ dap.configuraitons = { <HERE> }}). Here is a good example of one:
+```json
+{
+    "$schema": "https://raw.githubusercontent.com/mfussenegger/dapconfig-schema/master/dapconfig-schema.json",
+    "version": "0.2.0",
+    "configurations": [
+                {
+                        "name": ".NET Core Launch (web)",
+                        "type": "coreclr",
+                        "request": "launch",
+                        "preLaunchTask": "build",
+                        "program": "${workspaceFolder}/SimbasWeightLoss.API/bin/Debug/net6.0/SimbasWeightLoss.API.dll",
+                        "args": [],
+                        "cwd": "${workspaceFolder}/SimbasWeightLoss.API",
+                        "stopAtEntry": false,
+                        "serverReadyAction": {
+                                "action": "openExternally",
+                                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+                        },
+                        "env": {
+                                "ASPNETCORE_ENVIRONMENT": "Development"
+                        },
+                        "sourceFileMap": {
+                                "/Views": "${workspaceFolder}/Views"
+                        }
+                }
+        ]
+}
+```
+
+Then use ure own dap configuration as usual!.
+
 > [!WARNING]
 > At the moment properly managing the pid state is borked. [see dotnet issue #20152](https://github.com/dotnet/aspnetcore/issues/20152). As a result, `dotnvim` will be tackling this in a new issue [#8](https://github.com/adamkali/dotnvim/issues/8).
 
@@ -128,10 +164,10 @@ starts a watch process on the Solution root. (i.e. where the .sln).
 
 ## Credits
 
-- **[MoaidHathot](https://github.com/MoaidHathot/dotnet.nvim)**: Inspiration for improving .NET development in Neovim.
+- **[MoaidHathot](https://github.com/MoaidHathot/dotnet.nvim)**: Inspiration for this project.
 - **dap-go**: For debugging bootstraps. (Link needed)
-- **tjdvrees**: Guidance on Lua best practices.
-- **folke**: For code inspiration and snippets. (Link needed)
-- **Simba**: My cat, for moral support. 🐱
+- **[tjdvrees](https://github.com/nvim-telescope/telescope.nvim)**: __telescope__ 🔭
+- **[folke](https://github.com/folke)**: Code inspiration for... well everything!
 - **[nui.nvim](https://github.com/MunifTanjim/nui.nvim)**: For excellent UI components.
+- **Simba**: My cat, for moral support. 🐱
 
