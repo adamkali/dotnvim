@@ -4,6 +4,9 @@
 
 # dotnvim (Unstable)
 
+<a href="url"><img src="https://github.com/adamkali/dotnvim/blob/main/assets/DotNvim.png" height="128" width="128" ></a>
+
+
 ## Introduction
 
 **dotnvim** is the .NET tooling for Neovim that you've always wanted. .NET development in Neovim can be challenging due to the lack of robust tooling, especially compared to the support available for other languages like Rust with [rustaceanvim](https://github.com/mrcjkb/rustaceanvim), and of course the ide that shall not be named. This plugin aims to fill that gap, providing a seamless development experience for .NET developers who prefer Neovim. Enjoy!
