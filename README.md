@@ -13,7 +13,7 @@
 
 If you like what `dotnvim` is doing here, want to see more, or just not ready to add it to your config: please leave a star, it means the world. 
 
-If you would like to try out the plugin in a containerized way, go ahead and check out (dotnvim-config)[https://github.com/adamkali/dotnvim-config] to try out the plugin. And while you are there, give it a star as well ;)
+If you would like to try out the plugin in a containerized way, go ahead and check out [dotnvim-config](https://github.com/adamkali/dotnvim-config) to try out the plugin. And while you are there, give it a star as well ;)
 
 ## Table of Contents
 
