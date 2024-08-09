@@ -7,7 +7,7 @@ local M = {}
 -- @param callback func(csproj)
 M.select_csproj = function(callback)
     local selections = M.get_all_csproj()
-    if pcall(require, 'telescope') and DotnvimConfig.ui.no_pretty_uis ~= true then
+    if pcall(require, 'telescope') and vim.g.DotnvimConfig.ui.no_pretty_uis ~= true then
         telescope_utils.telescope_select_csproj(selections, callback)
     else
         local items = {}

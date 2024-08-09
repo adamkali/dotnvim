@@ -52,6 +52,11 @@ local function dotnet_shutdown_watch()
     dotnet.shutdown_watch()
 end
 
+local function dotnet_nuget_auth()
+    local dotnet = require('dotnvim')
+    dotnet.nuget_auth()
+end
+
 return {
     {
         dir = 'adamkali/dotnvim',
@@ -61,21 +66,28 @@ return {
             { '<leader>db', dotnet_build_last, desc = 'Build Last Project' },
             { '<leader>dw', dotnet_watch_last, desc = 'Watch Last Project' },
             { '<F10>', dotnet_restart_watch, desc = 'Restart Watch Job'},
-            { '<F34>', dotnet_shutdown_watch, desc = 'Shutdown Watch Job'}
+            { '<F34>', dotnet_shutdown_watch, desc = 'Shutdown Watch Job'},
+            { '<leader>dna', dotnet_nuget_auth, desc = 'Authenticate Nuget Sources' }
         },
-        opts = {
-            builders = {
-                -- will append -lp https always.
-                -- 
-                https_launch_setting_always = true,
-            },
-            ui = {
-                no_pretty_uis = false
-            },
-            dap = {
-		configurations = {}
+        config = function()
+            require('dotnvim').setup {
+                nuget = {
+                    sources = {
+                        "efilemadeeasy"
+                    },
+                    authenticators = {
+                        {
+                            cmd = "aws",
+                            args = { "codeartifact", "login", "--tool", "dotnet", "--domain", "YOUR_LIB", "--domain-owner", "AWSID", "--repository", "YOUR_REPO" }
+                        },
+                        {
+                            cmd = "foo",
+                            args = { "--username", "fat", "--password", "B4s+4rd"}
+                        },
+                    },
+                },
             }
-        }
+        end
     },
 }
 ```
@@ -107,7 +119,15 @@ Builds a project based on the Solution root. (i.e. where the .sln). The `last` p
 starts a watch process on the Solution root. (i.e. where the .sln).
 
 - `last` if last is true the plugin will use the `.csproj` stored in requireDotnvim
+> [!WARNING]
+> At the moment properly managing the pid state is borked. [see dotnet issue #20152](https://github.com/dotnet/aspnetcore/issues/20152). As a result, `dotnvim` will be tackling this in a new issue [#8](https://github.com/adamkali/dotnvim/issues/8).
 
+### `require('dotnvim').nuget_auth()`
+Authenticates users to any configured dotnet nuget source. In the sample config, there is an example with aws codeartifact. but realistically if you know how to authenticate with the cli, then pass those params into one of the authenticators. 
+
+> [!Note]
+> Whatever the `cmd = "..."` passed in is must be callable and in path. This will file otherwise
+ 
 ### Dap support 
 `dotnvim` has support for debugging based on `.vscode/launch.json` and the ability to add configurations in `require().setup({ dap.configuraitons = { <HERE> }}). Here is a good example of one:
 ```json
@@ -115,40 +135,28 @@ starts a watch process on the Solution root. (i.e. where the .sln).
     "$schema": "https://raw.githubusercontent.com/mfussenegger/dapconfig-schema/master/dapconfig-schema.json",
     "version": "0.2.0",
     "configurations": [
-                {
-                        "name": ".NET Core Launch (web)",
-                        "type": "coreclr",
-                        "request": "launch",
-                        "preLaunchTask": "build",
-                        "program": "${workspaceFolder}/SimbasWeightLoss.API/bin/Debug/net6.0/SimbasWeightLoss.API.dll",
-                        "args": [],
-                        "cwd": "${workspaceFolder}/SimbasWeightLoss.API",
-                        "stopAtEntry": false,
-                        "serverReadyAction": {
-                                "action": "openExternally",
-                                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
-                        },
-                        "env": {
-                                "ASPNETCORE_ENVIRONMENT": "Development"
-                        },
-                        "sourceFileMap": {
-                                "/Views": "${workspaceFolder}/Views"
-                        }
-                }
-        ]
+        {
+            "name": ".NET Core Launch (web)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/eFileMadeEasy.Client.API/bin/Debug/net6.0/eFileMadeEasy.Client.API.dll",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:44392;http://localhost:44391"
+            }
+        }
+    ]
 }
 ```
-
-Then use ure own dap configuration as usual!.
-
-> [!WARNING]
-> At the moment properly managing the pid state is borked. [see dotnet issue #20152](https://github.com/dotnet/aspnetcore/issues/20152). As a result, `dotnvim` will be tackling this in a new issue [#8](https://github.com/adamkali/dotnvim/issues/8).
+Then use your own dap configuration as usual!.
 
 
 ## Required Executables
 
 - `fd`
 - `dotnet`
+- `nuget`
 
 ### Required for Debugging
 - netcoredbg
@@ -170,9 +178,8 @@ Then use ure own dap configuration as usual!.
 Thank you! please see [CONTRIBUTING](https://github.com/adamkali/dotnvim/blob/main/CONTRIBUTING.md) and check out the [Issues](https://github.com/adamkali/dotnvim/issues)
 
 ## Credits
-
 - **[MoaidHathot](https://github.com/MoaidHathot/dotnet.nvim)**: Inspiration for this project.
-- **dap-go**: For debugging bootstraps. (Link needed)
+- [nvim-dap-go](https://github.com/leoluz/nvim-dap-go) For debugging bootstraps.
 - **[tjdvrees](https://github.com/nvim-telescope/telescope.nvim)**: __telescope__ 🔭
 - **[folke](https://github.com/folke)**: Code inspiration for... well everything!
 - **[nui.nvim](https://github.com/MunifTanjim/nui.nvim)**: For excellent UI components.
