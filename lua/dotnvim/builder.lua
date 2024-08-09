@@ -21,13 +21,13 @@ end
 -- time so the dotnet sanity checks dont fuck everything up
 -- and restart the process leading to 
 M.kill_dotnet_process = function()
-    if not Dotnvim.last_used_csproj then
+    if not vim.g.Dotnvim.last_used_csproj then
         print("No .csproj file was used recently.")
         return
     end
 
     -- Extract the project name from the .csproj path
-    local project_name = Dotnvim.last_used_csproj:match("([^/]+)%.csproj$")
+    local project_name = vim.g.Dotnvim.last_used_csproj:match("([^/]+)%.csproj$")
     if not project_name then
         print("Unable to extract project name from the .csproj path.")
         return
@@ -81,7 +81,7 @@ function M.dotnet_build(csproj_path)
         end),
         on_exit = function(j, return_val)
             vim.schedule(function()
-                Dotnvim.last_used_csproj = csproj_path
+                vim.g.Dotnvim.last_used_csproj = csproj_path
             end)
         end,
     })
@@ -91,15 +91,15 @@ end
 function M.start_dotnet_watch(csproj_path)
     -- Ensure the provided path is a .csproj file
     if not csproj_path or not csproj_path:match("%.csproj$") then
-        if not Dotnvim.last_used_csproj or not Dotnvim.last_used_csproj:match("%.csproj$") then
+        if not vim.g.Dotnvim.last_used_csproj or not vim.g.Dotnvim.last_used_csproj:match("%.csproj$") then
             print("Invalid .csproj path: " .. (csproj_path or "nil"))
-            print("Invalid Dotnvim.last_used_csproj path: " .. (Dotnvim.last_used_csproj or "nil"))
+            print("Invalid Dotnvim.last_used_csproj path: " .. (vim.g.Dotnvim.last_used_csproj or "nil"))
             return
         end
     end
 
     local dotnet_args = { 'watch', '--project', csproj_path }
-    if DotnvimConfig.builders.https_launch_setting_always then
+    if vim.g.DotnvimConfig.builders.https_launch_setting_always then
         vim.tbl_extend(dotnet_args, { "-lp",  "https" })
     end
     vim.print(dotnet_args)
@@ -107,7 +107,7 @@ function M.start_dotnet_watch(csproj_path)
     local bufnr = start_output_buffer("-watch.log")
 
     -- Start the job to run dotnet build
-    Dotnvim.running_watch = Job:new({
+    vim.g.Dotnvim.running_watch = Job:new({
         command = 'dotnet',
         args = dotnet_args,
         on_stdout = vim.schedule_wrap(function(_, line)
@@ -117,13 +117,13 @@ function M.start_dotnet_watch(csproj_path)
             dotnvim_utils.append_to_buffer(bufnr, { line })
         end),
     })
-    Dotnvim.last_used_csproj = csproj_path
-    Dotnvim.running_watch:start()
+    vim.g.Dotnvim.last_used_csproj = csproj_path
+    vim.g.Dotnvim.running_watch:start()
 end
 
 function M.restart_dotnet_watch()
     M.kill_dotnet_process()
-    M.start_dotnet_watch(Dotnvim.last_used_csproj)
+    M.start_dotnet_watch(vim.g.Dotnvim.last_used_csproj)
 end
 
 return M
