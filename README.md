@@ -1,11 +1,9 @@
 <a href="https://dotfyle.com/plugins/adamkali/dotnvim">
 	<img src="https://dotfyle.com/plugins/adamkali/dotnvim/shield?style=for-the-badge" />
 </a>
+<div align="center"><img src="https://github.com/adamkali/dotnvim/blob/main/assets/DotNvim.png" height="256" width="256" ></div>
 
 # dotnvim (Unstable)
-
-<a href="url"><img src="https://github.com/adamkali/dotnvim/blob/main/assets/DotNvim.png" height="128" width="128" ></a>
-
 
 ## Introduction
 
