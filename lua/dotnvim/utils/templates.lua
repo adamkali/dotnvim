@@ -38,11 +38,11 @@ M.dotnvim_api_model_template = function (name, namespace)
     return [[
 using System;
 
-namespace ]] .. namespace .. [[
+namespace ]] .. namespace .. [[ 
 {
-    public class ]] .. name .. [[
+    public class ]] .. name .. [[ 
     {
-        public ID Guid { get; set; }
+        public Guid ID { get; set; }
         // Insert The rest of your columns
         // ...
     }

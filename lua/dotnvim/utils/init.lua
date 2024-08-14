@@ -88,21 +88,28 @@ M.get_file_and_namespace = function(path)
 
     return {
         namespace = namespace,
-        path = path,
+        path = directory,
         file_name = file_base_name,
     }
 end
 
 M.get_curr_file_and_namespace = function()
     local path = vim.fn.expand('%:p')
-
     return M.get_file_and_namespace(path)
 end
 
 M.get_namespace_from_path = function(path, directory)
+    -- Remove the base directory from the path
     local namespace = string.gsub(path, directory, "")
 
+    -- Remove the file name and extension to isolate the namespace
+    namespace = string.gsub(namespace, "/[^/]*%.cs$", "")
+    namespace = string.gsub(namespace, "\\[^\\]*%.cs$", "")
+
+    -- Replace forward slashes with dots
     namespace = string.gsub(namespace, "/", ".")
+
+    -- Replace backslashes with dots
     namespace = string.gsub(namespace, "\\", ".")
 
     return namespace
