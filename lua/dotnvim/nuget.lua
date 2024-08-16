@@ -1,10 +1,9 @@
+local Job = require('plenary.job')
+local curl = require('plenary.curl')
 local NugetClient = {}
 
 NugetClient.authenticate = function()
-    local Job = require('plenary.job')
-    vim.print(vim.g.DotnvimConfig.nuget.authenticators)
     for _, authenticator in ipairs(vim.g.DotnvimConfig.nuget.authenticators) do
-        vim.print(authenticator)
         Job:new({
             command = authenticator.cmd,
             args = authenticator.args,
@@ -26,54 +25,51 @@ NugetClient.authenticate = function()
     end
 end
 
---- @param query string: provide to nuget what packages to add to the project
---- @param source string | nil: if source is nil, default to having nuget check in 'all', if the source is a .csproj in the current loaded cwd. This function will then return any packages installed with version.
---- @return table:  list of tables each containing the necissary data to install the package, update the package, or delet the project.
-NugetClient.get_packages_from_source = function(query, source)
-    local packages = {}
-    local Job = require('plenary.job')
 
-    local args = { 'list' }
-    if source then table.insert(args, source) end
-    if query then table.insert(args, query) end
+local function nuget_service_index(source)
+    local search_service_url = nil
+    local response = curl.get(source)
+    if response.staus ~= nil then
+        error("Failed")
+    end
 
-    Job:new({
-        command = 'dotnet',
-        args = args,
-        on_exit = function(j, return_val)
-            if return_val == 0 then
-                for _, line in ipairs(j:result()) do
-                    local package_name, version = string.match(line, "(%S+)%s+%[(%S+)%]")
-                    if package_name and version then
-                        table.insert(packages, { name = package_name, version = version })
-                    end
-                end
-            else
-                vim.g.Dotnvim.log.error("Failed to retrieve packages from source: " .. source)
-            end
-        end,
-    }):sync()
+    local json_response = vim.fn.json_decode(response.body)
 
-    return packages
+    for _, resource in ipairs(json_response) do
+        if resource["@type"]:match("SearchQueryService") then
+            search_service_url = resource["@id"]
+            break
+        end
+    end
+
+    if not search_service_url then
+        error("SearchQueryService URL not found")
+    end
+    return search_service_url
 end
 
---- @param package table: package is the same shape as what is returned from the NugetClient.get_packages_from_source function. It will use this table to determine what cli arguments to pass to nuget cli
---- @param version string | nil: specifies which version number dotnvim.NugetClient should install. If nil, dotnvim.NugetClient will default to latest compatable release for for currently installed .Net sdk,
---- @param projects table | nil | {}: a list of csproj paths to add the package to. If nil or an empty table, dotnvim.NugetClient will default the install to all.
-NugetClient.install_package_to_project = function(package, version, projects)
-end
+NugetClient.search_package_by_source = function(query, source, param_config)
+    if source == nil then
+        source = "https://api.nuget.org/v3/index.json"
+    end
+    local search_service_url = nuget_service_index(source)
+    print(search_service_url)
 
---- @param package table: package is the same shape as what is returned from the NugetClient.get_packages_from_source function. It will use this table to determine what cli arguments to pass to nuget cli.  
---- @param version string | nil: specifies which version number dotnvim.NugetClient should upgrade to. If nil, dotnvim.NugetClient will default to latest compatable release for for currently installed .Net sdk. If version is less than current version, then dotnvim.NugetClient will try to 'update' to an older version.
---- 
---- NOTE: There is no projects table as parameters. This is because dotnet will error if versions on packages ar not matched... fact check me please.
-NugetClient.update_package_to_project = function (package, version)
-end
+    local params = vim.tbl_deep_extend("force", { q = query }, param_config)
+    local full_url = dotnvim_utils.url_query_builder(search_service_url, params)
 
---- @param package table: package is the same shape as what is returned from the NugetClient.get_packages_from_source function. It will use this table to determine what cli arguments to pass to nuget cli when deleting.  
---- @param projects table | nil | {}: a list of csproj paths to add the package to. If nil or an empty table, dotnvim.NugetClient will default the deleting the package from every project in the .sln working dir.
-NugetClient.delete_package_to_project = function(package, projects)
-end
+    ---- Make the HTTP GET request
+    --
+    --local full_url = search_service_url .. "?" .. query_string
+    --local response, status = http.request(full_url)
 
+    --if status ~= 200 then
+    --    error("Failed to search for packages: " .. status)
+    --end
+
+    ---- Parse and return the JSON response
+    --local json_response = vim.json.decode(response)
+    return json_response
+end
 
 return NugetClient

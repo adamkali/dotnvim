@@ -204,5 +204,35 @@ M.append_to_buffer = function(bufnr, lines)
     end
 end
 
+M.url_query_builder = function(base_url, params)
+    -- Function to URL encode parameters
+    local function urlencode(str)
+        if str then
+            str = str:gsub("\n", "\r\n")
+            str = str:gsub("([^%w ])", function(c)
+                return string.format("%%%02X", string.byte(c))
+            end)
+            str = str:gsub(" ", "+")
+        end
+        return str
+    end
+
+    -- Start with the base URL
+    local url = base_url
+
+    -- Add each parameter to the URL
+    local query_string = {}
+    for key, value in pairs(params) do
+        table.insert(query_string, urlencode(key) .. "=" .. urlencode(tostring(value)))
+    end
+
+    -- Concatenate the query string with the base URL
+    if next(query_string) then
+        url = url .. "?" .. table.concat(query_string, "&")
+    end
+
+    return url
+end
+
 
 return M

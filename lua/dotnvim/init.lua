@@ -141,12 +141,17 @@ function M.setup(config)
         ui = config.ui or {}
     })
 
+    nuget_client.authenticate()
     -- Apply the merged configuration
     configurator.configurate_dap(vim.g.DotnvimConfig.dap)
 end
 
 function M.nuget_auth()
     nuget_client.authenticate()
+end
+
+function M.nuget_search()
+    nuget_client.search_package_by_source("Json", nil, {})
 end
 
 return M
