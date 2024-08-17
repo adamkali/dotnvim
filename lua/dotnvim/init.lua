@@ -151,7 +151,10 @@ function M.nuget_auth()
 end
 
 function M.nuget_search()
-    nuget_client.search_package_by_source("Json", nil, {})
+    local results = nuget_client.search_package_by_source("Newtonsoft.Json", nil, { take = 10 })
+    for _, value in ipairs(results) do
+        vim.print(value["title"])
+    end
 end
 
 return M

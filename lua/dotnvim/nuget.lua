@@ -29,11 +29,12 @@ end
 local function nuget_service_index(source)
     local search_service_url = nil
     local response = curl.get(source)
-    if response.staus ~= nil then
+    if response.staus ~= nil and response.staus ~= 200 then
         error("Failed")
+        return
     end
 
-    local json_response = vim.fn.json_decode(response.body)
+    local json_response = vim.fn.json_decode(response.body)["resources"]
 
     for _, resource in ipairs(json_response) do
         if resource["@type"]:match("SearchQueryService") then
@@ -56,19 +57,18 @@ NugetClient.search_package_by_source = function(query, source, param_config)
     print(search_service_url)
 
     local params = vim.tbl_deep_extend("force", { q = query }, param_config)
-    local full_url = dotnvim_utils.url_query_builder(search_service_url, params)
+    local response = curl.get(search_service_url, { query = params })
+    local status = response["status"]
 
     ---- Make the HTTP GET request
     --
-    --local full_url = search_service_url .. "?" .. query_string
-    --local response, status = http.request(full_url)
+    if status ~= 200 then
+        error("Failed to search for packages: " .. string.format(status))
+    end
 
-    --if status ~= 200 then
-    --    error("Failed to search for packages: " .. status)
-    --end
-
-    ---- Parse and return the JSON response
-    --local json_response = vim.json.decode(response)
+    -- Parse and return the JSON response
+    local json_response = vim.json.decode(response["body"])
+    json_response = json_response["data"]
     return json_response
 end
 
