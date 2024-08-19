@@ -6,6 +6,7 @@ local dotnvim_builders = require('dotnvim.builder')
 local dotnvim_utils = require('dotnvim.utils')
 local configurator = require('dotnvim.config')
 local nuget_client = require('dotnvim.nuget')
+local UI = require("dotnvim.ui")
 
 -- Ensure Neovim version is at least 0.9.0
 if vim.fn.has("nvim-0.9.0") ~= 1 then
@@ -56,20 +57,27 @@ vim.g.DotnvimConfig = {
         }
     },
     nuget = {
-        sources = {},
         authenticators = {
             {
                 cmd = "",
                 args = {}
             }
+        },
+        search = {
+            params = {
+                take = 5,
+                prerelease = "false",
+                -- package_type = false,
+                -- sem_ver = "1.0.0",
+            },
+            binds = {
+                up = "k",
+                down = "j",
+            }
         }
     }
 }
 
-M.default_params = {
-    bootstrap_verbose = false,
-    bootstrap_namespace = nil
-}
 
 -- Build the last used project or prompt for selection
 function M.build(last)
@@ -151,11 +159,7 @@ function M.nuget_auth()
 end
 
 function M.nuget_search()
-    local results = nuget_client.search_package_by_source("Newtonsoft.Json", nil, { take = 10 })
-    for _, value in ipairs(results) do
-        vim.print(value["title"])
-    end
+    UI.NugetSearch()
 end
 
 return M
-

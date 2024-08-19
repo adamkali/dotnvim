@@ -11,11 +11,12 @@ NugetClient.authenticate = function()
                 local cmd = authenticator.cmd .. " " .. table.concat(authenticator.args, " ")
                 if return_val == 0 then
                     vim.g.Dotnvim.log.info("Command executed successfully: " .. cmd)
-                    print("Command executed successfully: " .. cmd)
+                    --print("Command executed successfully: " .. cmd)
+                    -- folke noice
                 else
                     vim.g.Dotnvim.log.error("Command execution failed: " .. cmd)
                     vim.g.Dotnvim.log.error("Error: " .. table.concat(j:stderr_result(), "\n"))
-                    print("Command execution failed: " .. cmd)
+                    error("Command execution failed: " .. cmd)
                 end
             end,
             on_stderr = function(_, data)
@@ -24,7 +25,6 @@ NugetClient.authenticate = function()
         }):start()
     end
 end
-
 
 local function nuget_service_index(source)
     local search_service_url = nil
@@ -61,7 +61,6 @@ NugetClient.search_package_by_source = function(query, source, param_config)
     local status = response["status"]
 
     ---- Make the HTTP GET request
-    --
     if status ~= 200 then
         error("Failed to search for packages: " .. string.format(status))
     end
@@ -69,6 +68,7 @@ NugetClient.search_package_by_source = function(query, source, param_config)
     -- Parse and return the JSON response
     local json_response = vim.json.decode(response["body"])
     json_response = json_response["data"]
+
     return json_response
 end
 
