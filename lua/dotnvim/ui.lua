@@ -9,6 +9,7 @@ UI.state = {}
 UI.state.title_linenum = 1
 UI.state.csproj_linenum = 1
 UI.state.hl_ns = nil
+UI.state.titles = {}
 UI.state.selected_package = {
     title = "",
     version = "",
@@ -88,48 +89,6 @@ local layout              = Layout({
 )
 --#endregion
 
---#region Nuget Package Search Input
-local function _prompt_config()
-    if vim.g.DotnvimConfig.ui.no_pretty_uis ~= false then
-        return " "
-    else
-        return "? "
-    end
-end
-
-local package_name_input = Input({
-    position = "50%",
-    size     = {
-        width = 30,
-    },
-    border   = {
-        style = "single",
-        text = {
-            top = "Search By Name",
-            top_align = "center"
-        },
-    }
-}, {
-    prompt = _prompt_config(),
-    default_value = "",
-    on_submit = function(value)
-        -- TODO: For now pass nil for sources
-        -- We will then use a second window
-        -- to select from
-        -- $ dotnet nuget list source
-        local results = NugetClient.search_package_by_source(value, nil, vim.g.DotnvimConfig.nuget.search.params)
-        local titles = {}
-        for _, result in ipairs(results) do
-            table.insert(titles, result)
-        end
-        UI.NugetAddPackageUI()
-        UI.NugetPackagesUi(titles)
-        layout:show()
-    end
-})
-
-
---#endregion
 
 --#region Csproj Install list
 local csporj_popup           = Popup({
@@ -162,6 +121,49 @@ local install_layout         = Layout({
 )
 --#endregion
 
+--#region Nuget Package Search Input
+local function _prompt_config()
+    local no_icon = vim.g.DotnvimConfig.ui.no_pretty_uis
+
+    if  no_icon == false or no_icon == nil then
+        return " "
+    else
+        return "? "
+    end
+end
+
+
+local package_name_input = Input({
+    position = "50%",
+    size     = {
+        width = 30,
+    },
+    border   = {
+        style = "single",
+        text = {
+            top = "Search By Name",
+            top_align = "center"
+        },
+    }
+}, {
+    prompt = _prompt_config(),
+    default_value = "",
+    on_submit = function(value)
+        -- TODO: For now pass nil for sources
+        -- We will then use a second window
+        -- to select from
+        -- $ dotnet nuget list source
+        local results = NugetClient.search_package_by_source(value, nil, vim.g.DotnvimConfig.nuget.search.params)
+        local titles = {}
+        for _, result in ipairs(results) do
+            table.insert(titles, result)
+        end
+        UI.NugetPackagesUi(titles)
+    end
+})
+
+
+--#endregion
 
 local function package_popup_move(dir, packages, package_titles, package_vers, package_description)
     vim.api.nvim_buf_clear_namespace(packages_titles_popup.bufnr, UI.state.hl_ns, 1, -1)
@@ -229,7 +231,6 @@ UI.NugetAddPackageUI = function()
         cs_popup_move(-1, csporj_list)
     end)
     install_layout:mount()
-    install_layout:hide()
 end
 
 --- @param packages table this is of the structure {{
@@ -274,7 +275,7 @@ UI.NugetPackagesUi = function(packages)
             version = packages[UI.state.title_linenum]["version"]
         }
         layout:unmount()
-        install_layout:show()
+        UI.NugetAddPackageUI()
     end)
 
     write(packages_titles_popup, 1, package_titles)
@@ -283,8 +284,6 @@ UI.NugetPackagesUi = function(packages)
     UI.state.hl_ns = vim.api.nvim_buf_add_highlight(
         packages_titles_popup.bufnr, 0, "Function", UI.state.title_linenum, 1, -1)
     layout:mount()
-    layout:hide()
 end
-
 
 return UI
