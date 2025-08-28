@@ -1,0 +1,87 @@
+@document.meta
+title: dotnvim Documentation
+description: Complete guide to dotnvim - .NET tooling for Neovim
+authors: adamkali
+categories: neovim plugin dotnet
+created: 2025-08-28
+updated: 2025-08-28
+version: 1.0.0
+@end
+
+* dotnvim - .NET Tooling for Neovim
+
+  Welcome to the complete documentation for {* dotnvim *}, a comprehensive Neovim plugin that provides .NET development tooling and project management capabilities.
+
+** What is dotnvim?
+
+   dotnvim is a Neovim plugin designed to streamline .NET development workflows by providing:
+   - Project building and watching capabilities
+   - Interactive code generation for classes and controllers
+   - NuGet package management and authentication
+   - Task execution system with dependency resolution
+   - Debug Adapter Protocol (DAP) integration
+   - Health checking for development environment
+
+** Quick Start
+
+   To get started with dotnvim:
+
+   @code lua
+   -- In your Neovim configuration
+   require('dotnvim').setup({
+     builders = {
+       https_launch_setting_always = true,
+     },
+     ui = {
+       no_pretty_uis = false,
+     },
+     tasks = {
+       enabled = true,
+       execution_mode = "dependency_aware",
+     }
+   })
+   @end
+
+** Main Features
+
+*** Building and Watching
+    - `require('dotnvim').build()` - Build your .NET project
+    - `require('dotnvim').watch()` - Start dotnet watch for hot reloading
+    - `require('dotnvim').restart_watch()` - Restart watch process
+    - `require('dotnvim').shutdown_watch()` - Stop watch process
+
+*** Code Generation
+    - `require('dotnvim').bootstrap()` - Interactive code generation
+    - Support for C# classes and ASP.NET controllers
+    - Template-based generation with customizable templates
+
+*** NuGet Management
+    - `require('dotnvim').nuget_auth()` - Authenticate NuGet sources
+    - Support for private NuGet feeds
+    - Configurable authentication methods
+
+*** Task System
+    - Full task workflow system with pre-debug execution
+    - Multi-format configuration support (JSON, YAML, TOML)
+    - Dependency resolution and parallel execution
+    - DAP integration for debugging workflows
+
+** Documentation Sections
+
+   - {/ installation} - Installation and setup guide
+   - {/ configuration} - Configuration options and examples
+   - {/ commands} - Available commands and usage
+   - {/ tasks} - Task system documentation
+   - {/ debugging} - Debugging setup and usage
+   - {/ api} - API reference and examples
+   - {/ troubleshooting} - Common issues and solutions
+
+** Getting Help
+
+   - Run `:checkhealth dotnvim` to verify your setup
+   - Check the {https://github.com/adamkali/dotnvim}[GitHub repository] for issues and updates
+   - Review the configuration examples in this documentation
+
+** Contributing
+
+   Contributions are welcome! Please see the CONTRIBUTING.md file in the repository for guidelines.

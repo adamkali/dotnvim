@@ -1,0 +1,164 @@
+name: Generate Documentation
+
+on:
+  push:
+    branches: [ main ]
+    paths: 
+      - 'docs/norg/**'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Neovim
+      uses: rhymond/setup-neovim@v1
+      with:
+        neovim-version: v0.10.0
+        
+    - name: Install dependencies
+      run: |
+        # Install luarocks
+        sudo apt update
+        sudo apt install -y luarocks
+        
+        # Install plenary
+        sudo luarocks install plenary.nvim
+        
+    - name: Install Neorg
+      run: |
+        # Clone neorg to a temporary location
+        git clone --depth=1 https://github.com/nvim-neorg/neorg.git /tmp/neorg
+        
+    - name: Setup documentation generation environment
+      run: |
+        mkdir -p docgen
+        mkdir -p docs/generated
+        
+    - name: Create minimal Neovim config
+      run: |
+        cat > docgen/minimal_init.lua << 'EOF'
+        -- Add neorg to runtimepath
+        vim.opt.rtp:prepend('/tmp/neorg')
+        
+        -- Setup neorg with minimal config
+        require('neorg').setup {
+          load = {
+            ["core.defaults"] = {},
+            ["core.export"] = {},
+            ["core.export.markdown"] = {
+              config = {
+                extensions = "all"
+              }
+            }
+          }
+        }
+        EOF
+        
+    - name: Generate documentation
+      run: |
+        # Convert each .norg file to markdown
+        for norg_file in docs/norg/*.norg; do
+          if [ -f "$norg_file" ]; then
+            filename=$(basename "$norg_file" .norg)
+            echo "Converting $norg_file to docs/generated/${filename}.md"
+            
+            nvim --headless \
+              -u docgen/minimal_init.lua \
+              -c "edit $norg_file" \
+              -c "Neorg export to-file docs/generated/${filename}.md" \
+              -c "qa!"
+          fi
+        done
+        
+    - name: Create index.html for GitHub Pages
+      run: |
+        cat > docs/generated/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>dotnvim Documentation</title>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+                body { 
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 2rem;
+                    line-height: 1.6;
+                }
+                h1, h2 { color: #333; }
+                a { color: #0366d6; text-decoration: none; }
+                a:hover { text-decoration: underline; }
+                ul { list-style-type: none; padding: 0; }
+                li { margin: 0.5rem 0; }
+            </style>
+        </head>
+        <body>
+            <h1>dotnvim Documentation</h1>
+            <p>.NET tooling for Neovim - Complete documentation and guides</p>
+            
+            <h2>Documentation Sections</h2>
+            <ul>
+        EOF
+        
+        # Add links to all generated markdown files
+        for md_file in docs/generated/*.md; do
+          if [ -f "$md_file" ]; then
+            filename=$(basename "$md_file" .md)
+            if [ "$filename" != "index" ]; then
+              echo "                <li><a href=\"${filename}.md\">${filename^}</a></li>" >> docs/generated/index.html
+            fi
+          fi
+        done
+        
+        # Add index link
+        if [ -f "docs/generated/index.md" ]; then
+          echo "                <li><a href=\"index.md\">Overview</a></li>" >> docs/generated/index.html
+        fi
+        
+        cat >> docs/generated/index.html << 'EOF'
+            </ul>
+            
+            <h2>Links</h2>
+            <ul>
+                <li><a href="https://github.com/adamkali/dotnvim">GitHub Repository</a></li>
+                <li><a href="https://github.com/adamkali/dotnvim/issues">Issues & Support</a></li>
+            </ul>
+        </body>
+        </html>
+        EOF
+        
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: 'docs/generated'
+        
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: generate-docs
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

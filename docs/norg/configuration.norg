@@ -1,0 +1,291 @@
+@document.meta
+title: Configuration Guide
+description: Complete configuration options for dotnvim
+authors: adamkali
+categories: configuration setup
+created: 2025-08-28
+updated: 2025-08-28
+version: 1.0.0
+@end
+
+* Configuration Guide
+
+** Overview
+
+  dotnvim provides extensive configuration options to customize your .NET development workflow. All configuration is done through the `setup()` function.
+
+** Default Configuration
+
+  @code lua
+  require('dotnvim').setup({
+    builders = {
+      build_output_callback = nil,
+      https_launch_setting_always = true,
+    },
+    ui = {
+      no_pretty_uis = false,
+    },
+    dap = {
+      adapter = {
+        type = 'executable',
+        command = "netcoredbg",
+        args = { '--interpreter=vscode' },
+      }
+    },
+    nuget = {
+      sources = {},
+      authenticators = {
+        {
+          cmd = "",
+          args = {}
+        }
+      }
+    },
+    tasks = {
+      enabled = true,
+      execution_mode = "dependency_aware",
+      dap_integration = {
+        enabled = true,
+        pre_debug_tasks = nil,
+        block_on_failure = true,
+        timeout_seconds = 300,
+      }
+    }
+  })
+  @end
+
+** Configuration Sections
+
+*** Builders Configuration
+
+    Controls build and watch behavior:
+
+    @code lua
+    builders = {
+      -- Callback function for build output processing
+      build_output_callback = function(output)
+        -- Custom processing of build output
+        print(output)
+      end,
+      
+      -- Always use HTTPS in launch settings
+      https_launch_setting_always = true,
+    }
+    @end
+
+**** Options:
+     - `build_output_callback` (function): Custom callback for build output
+     - `https_launch_setting_always` (boolean): Force HTTPS in launch settings
+
+*** UI Configuration
+
+    Controls user interface behavior:
+
+    @code lua
+    ui = {
+      -- Disable fancy UIs and use vim.ui.select instead
+      no_pretty_uis = false,
+    }
+    @end
+
+**** Options:
+     - `no_pretty_uis` (boolean): Use vim.ui.select instead of telescope/nui
+
+*** DAP Configuration
+
+    Debug Adapter Protocol settings:
+
+    @code lua
+    dap = {
+      adapter = {
+        type = 'executable',
+        command = "netcoredbg",
+        args = { '--interpreter=vscode' },
+      }
+    }
+    @end
+
+**** Options:
+     - `adapter.type` (string): DAP adapter type
+     - `adapter.command` (string): Path to debugger executable  
+     - `adapter.args` (table): Arguments for debugger
+
+*** NuGet Configuration
+
+    NuGet source and authentication settings:
+
+    @code lua
+    nuget = {
+      sources = {
+        {
+          name = "MyPrivateFeed",
+          url = "https://pkgs.dev.azure.com/myorg/_packaging/myfeed/nuget/v3/index.json"
+        }
+      },
+      authenticators = {
+        {
+          cmd = "az",
+          args = { "artifacts", "universal", "login", "--organization", "myorg" }
+        }
+      }
+    }
+    @end
+
+**** Options:
+     - `sources` (table): List of NuGet sources
+       -- `name` (string): Source name
+       -- `url` (string): Source URL
+     - `authenticators` (table): Authentication commands
+       -- `cmd` (string): Command to run
+       -- `args` (table): Command arguments
+
+*** Tasks Configuration
+
+    Task system configuration:
+
+    @code lua
+    tasks = {
+      enabled = true,
+      execution_mode = "dependency_aware",  -- "sequential" | "dependency_aware"
+      dap_integration = {
+        enabled = true,
+        pre_debug_tasks = {"build", "restore"}, -- Auto-discover if nil
+        block_on_failure = true,
+        timeout_seconds = 300,
+      }
+    }
+    @end
+
+**** Options:
+     - `enabled` (boolean): Enable task system
+     - `execution_mode` (string): How to execute tasks
+       -- `"sequential"`: Run tasks one by one
+       -- `"dependency_aware"`: Respect task dependencies
+     - `dap_integration.enabled` (boolean): Enable DAP integration
+     - `dap_integration.pre_debug_tasks` (table): Tasks to run before debugging
+     - `dap_integration.block_on_failure` (boolean): Stop on task failure
+     - `dap_integration.timeout_seconds` (number): Task timeout
+
+** Configuration Examples
+
+*** Minimal Configuration
+    @code lua
+    require('dotnvim').setup()
+    @end
+
+*** Development Environment
+    @code lua
+    require('dotnvim').setup({
+      builders = {
+        build_output_callback = function(output)
+          -- Log build output to file
+          local log_file = io.open(vim.fn.stdpath('data') .. '/dotnvim-build.log', 'a')
+          log_file:write(output .. '\n')
+          log_file:close()
+        end,
+        https_launch_setting_always = true,
+      },
+      tasks = {
+        enabled = true,
+        execution_mode = "dependency_aware",
+      }
+    })
+    @end
+
+*** Enterprise Setup
+    @code lua
+    require('dotnvim').setup({
+      builders = {
+        https_launch_setting_always = true,
+      },
+      nuget = {
+        sources = {
+          {
+            name = "CompanyFeed",
+            url = "https://nuget.company.com/v3/index.json"
+          }
+        },
+        authenticators = {
+          {
+            cmd = "company-auth-tool",
+            args = { "--login", "--service", "nuget" }
+          }
+        }
+      },
+      tasks = {
+        enabled = true,
+        execution_mode = "dependency_aware",
+        dap_integration = {
+          enabled = true,
+          pre_debug_tasks = {"restore", "build", "test"},
+          block_on_failure = true,
+          timeout_seconds = 600,
+        }
+      }
+    })
+    @end
+
+** State Management
+
+  dotnvim separates configuration from runtime state:
+
+*** Configuration Access
+    @code lua
+    local config_manager = require('dotnvim.config_manager')
+    local builders_config = config_manager.get_builders_config()
+    local ui_config = config_manager.get_ui_config()
+    @end
+
+*** State Access
+    @code lua
+    local last_csproj = config_manager.get_last_csproj()
+    local running_jobs = config_manager.get_running_jobs()
+    @end
+
+** Advanced Configuration
+
+*** Custom Build Output Processing
+    @code lua
+    builders = {
+      build_output_callback = function(output)
+        -- Parse build warnings/errors
+        if output:match("warning") then
+          vim.notify("Build warning: " .. output, vim.log.levels.WARN)
+        elseif output:match("error") then
+          vim.notify("Build error: " .. output, vim.log.levels.ERROR)
+        end
+      end
+    }
+    @end
+
+*** Multiple NuGet Sources
+    @code lua
+    nuget = {
+      sources = {
+        {
+          name = "Azure DevOps",
+          url = "https://pkgs.dev.azure.com/org/_packaging/feed/nuget/v3/index.json"
+        },
+        {
+          name = "Private Registry", 
+          url = "https://private-registry.company.com/nuget"
+        }
+      },
+      authenticators = {
+        {
+          cmd = "az",
+          args = { "artifacts", "universal", "login" }
+        },
+        {
+          cmd = "nuget-auth",
+          args = { "--source", "private-registry" }
+        }
+      }
+    }
+    @end
+
+** Next Steps
+
+  - {/ tasks} - Configure task workflows
+  - {/ debugging} - Set up debugging
+  - {/ commands} - Learn available commands

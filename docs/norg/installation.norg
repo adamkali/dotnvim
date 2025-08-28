@@ -1,0 +1,186 @@
+@document.meta
+title: Installation Guide
+description: How to install and set up dotnvim
+authors: adamkali
+categories: installation setup
+created: 2025-08-28
+updated: 2025-08-28
+version: 1.0.0
+@end
+
+* Installation Guide
+
+** Requirements
+
+*** System Dependencies
+    dotnvim requires the following system executables:
+    - `dotnet` - .NET CLI (required)
+    - `fd` - File finder utility (required)
+    - `netcoredbg` - .NET Core debugger (optional, for debugging support)
+
+*** Neovim Plugin Dependencies
+    - `plenary.nvim` - Required for async jobs and utilities
+    - `nvim-treesitter` - Required for syntax parsing
+    - `telescope.nvim` - Optional, for project selection UI
+    - `nui.nvim` - Optional, for bootstrap UI components
+    - `nvim-dap` - Optional, for debugging support
+
+** Installation Methods
+
+*** Using lazy.nvim
+    @code lua
+    {
+      'adamkali/dotnvim',
+      dependencies = {
+        'nvim-lua/plenary.nvim',
+        'nvim-treesitter/nvim-treesitter',
+        -- Optional dependencies
+        'nvim-telescope/telescope.nvim',
+        'MunifTanjim/nui.nvim',
+        'mfussenegger/nvim-dap',
+      },
+      config = function()
+        require('dotnvim').setup({
+          -- Your configuration here
+        })
+      end,
+    }
+    @end
+
+*** Using packer.nvim
+    @code lua
+    use {
+      'adamkali/dotnvim',
+      requires = {
+        'nvim-lua/plenary.nvim',
+        'nvim-treesitter/nvim-treesitter',
+        -- Optional
+        'nvim-telescope/telescope.nvim',
+        'MunifTanjim/nui.nvim',
+        'mfussenegger/nvim-dap',
+      },
+      config = function()
+        require('dotnvim').setup()
+      end
+    }
+    @end
+
+*** Using vim-plug
+    @code vim
+    Plug 'nvim-lua/plenary.nvim'
+    Plug 'nvim-treesitter/nvim-treesitter'
+    " Optional dependencies
+    Plug 'nvim-telescope/telescope.nvim'
+    Plug 'MunifTanjim/nui.nvim'
+    Plug 'mfussenegger/nvim-dap'
+    
+    Plug 'adamkali/dotnvim'
+    @end
+
+** System Setup
+
+*** Installing .NET CLI
+    **** Windows
+         Download from {https://dotnet.microsoft.com/download}[Microsoft's official site]
+
+    **** macOS
+         @code bash
+         brew install dotnet
+         @end
+
+    **** Linux (Ubuntu/Debian)
+         @code bash
+         wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+         sudo dpkg -i packages-microsoft-prod.deb
+         rm packages-microsoft-prod.deb
+         sudo apt update
+         sudo apt install -y dotnet-sdk-8.0
+         @end
+
+*** Installing fd
+    **** macOS
+         @code bash
+         brew install fd
+         @end
+
+    **** Linux
+         @code bash
+         # Ubuntu/Debian
+         sudo apt install fd-find
+         
+         # Arch Linux
+         sudo pacman -S fd
+         @end
+
+    **** Windows
+         @code bash
+         # Using chocolatey
+         choco install fd
+         
+         # Using scoop
+         scoop install fd
+         @end
+
+*** Installing netcoredbg (Optional)
+    For debugging support, install netcoredbg:
+
+    @code bash
+    # Download the latest release from GitHub
+    # https://github.com/Samsung/netcoredbg/releases
+    
+    # Or build from source
+    git clone https://github.com/Samsung/netcoredbg
+    cd netcoredbg
+    mkdir build && cd build
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local
+    make && sudo make install
+    @end
+
+** Verification
+
+   After installation, verify everything is working:
+
+   @code vim
+   :checkhealth dotnvim
+   @end
+
+   This will check all dependencies and provide guidance for any missing components.
+
+** Basic Configuration
+
+   Add this to your Neovim configuration:
+
+   @code lua
+   require('dotnvim').setup({
+     builders = {
+       build_output_callback = nil,
+       https_launch_setting_always = true,
+     },
+     ui = {
+       no_pretty_uis = false,
+     },
+     dap = {
+       adapter = {
+         type = 'executable',
+         command = "netcoredbg",
+         args = { '--interpreter=vscode' },
+       }
+     },
+     tasks = {
+       enabled = true,
+       execution_mode = "dependency_aware",
+       dap_integration = {
+         enabled = true,
+         block_on_failure = true,
+         timeout_seconds = 300,
+       }
+     }
+   })
+   @end
+
+** Next Steps
+
+   Once installed, check out:
+   - {/ configuration} - Detailed configuration options
+   - {/ commands} - Available commands and keybindings
+   - {/ tasks} - Setting up task workflows
