@@ -6,10 +6,15 @@ local dotnvim_builders = require('dotnvim.builder')
 local dotnvim_utils = require('dotnvim.utils')
 local configurator = require('dotnvim.config')
 local nuget_client = require('dotnvim.nuget')
+local config_manager = require('dotnvim.config_manager')
+local tasks = require('dotnvim.tasks')
+local dap_hooks = require('dotnvim.dap_hooks')
+local logger = require('dotnvim.utils.logger')
+local ui = require('dotnvim.ui')
 
 -- Ensure Neovim version is at least 0.9.0
 if vim.fn.has("nvim-0.9.0") ~= 1 then
-    vim.api.nvim_err_writeln("dotnvim requires at least nvim-0.9.0.")
+    vim.notify("dotnvim requires at least nvim-0.9.0.", vim.log.levels.ERROR)
     return
 end
 
@@ -26,45 +31,9 @@ local log = require('plenary.log').new({
     float_precision = 0.01,    -- Floating point precision for numbers
 })
 
--- Dotnvim plugin setup
-vim.g.Dotnvim = {
-    last_used_csproj = nil,
-    running_job = nil,
-    running_watch = nil,
-    log = {
-        debug = function(message) log.debug(message) end,
-        info  = function(message) log.info(message) end,
-        warn  = function(message) log.warn(message) end,
-        error = function(message) log.error(message) end,
-    }
-}
-
--- Configuration settings for Dotnvim
-vim.g.DotnvimConfig = {
-    builders = {
-        build_output_callback = nil,
-        https_launch_setting_always = true,
-    },
-    ui = {
-        no_pretty_uis = false,
-    },
-    dap = {
-        adapter = {
-            type = 'executable',
-            command = "netcoredbg",
-            args = { '--interpreter=vscode' },
-        }
-    },
-    nuget = {
-        sources = {},
-        authenticators = {
-            {
-                cmd = "",
-                args = {}
-            }
-        }
-    }
-}
+-- Initialize config manager with defaults
+config_manager.setup({})
+config_manager.init_state(log)
 
 M.default_params = {
     bootstrap_verbose = false,
@@ -73,19 +42,23 @@ M.default_params = {
 
 -- Build the last used project or prompt for selection
 function M.build(last)
-    if vim.g.Dotnvim.last_used_csproj and last then
-        dotnvim_builders.dotnet_build(vim.g.Dotnvim.last_used_csproj)
+    local last_csproj = config_manager.get_last_used_csproj()
+    if last_csproj and last then
+        return dotnvim_builders.dotnet_build(last_csproj)
     else
         dotnvim_utils.select_csproj(dotnvim_builders.dotnet_build)
+        return true
     end
 end
 
 -- Watch the last used project or prompt for selection
 function M.watch(last)
-    if vim.g.Dotnvim.last_used_csproj and last then
-        dotnvim_builders.dotnet_watch(vim.g.Dotnvim.last_used_csproj)
+    local last_csproj = config_manager.get_last_used_csproj()
+    if last_csproj and last then
+        return dotnvim_builders.dotnet_watch(last_csproj)
     else
         dotnvim_utils.select_csproj(dotnvim_builders.dotnet_watch)
+        return true
     end
 end
 
@@ -108,7 +81,7 @@ end
 
 -- Query last used .csproj
 function M.query_last_ran_csproj()
-    print(vim.g.Dotnvim.last_used_csproj)
+    print(config_manager.get_last_used_csproj())
 end
 
 -- Restart the watch process
@@ -133,20 +106,78 @@ end
 function M.setup(config)
     config = config or {}
 
-    -- Merge the incoming configuration with the defaults
-    vim.g.DotnvimConfig = vim.tbl_deep_extend("force", vim.g.DotnvimConfig, {
-        builders = config.builders or {},
-        dap = config.dap or {},
-        nuget = config.nuget or {},
-        ui = config.ui or {}
+    -- Setup centralized configuration
+    if not config_manager.setup(config) then
+        return false
+    end
+    
+    -- Initialize logger with debug configuration
+    local debug_config = config_manager.get_debug_config()
+    logger.init({
+        debug_mode = debug_config.enabled,
+        log_file_path = debug_config.log_file_path
     })
 
-    -- Apply the merged configuration
-    configurator.configurate_dap(vim.g.DotnvimConfig.dap)
+    -- Apply DAP configuration
+    configurator.configurate_dap(config_manager.get_dap_config())
+    
+    -- Setup task system
+    local tasks_config = config_manager.get_tasks_config()
+    if tasks_config.enabled then
+        tasks.setup({
+            execution_mode = tasks_config.execution_mode
+        })
+        
+        -- Setup DAP integration
+        if tasks_config.dap_integration.enabled then
+            dap_hooks.setup({
+                enabled = tasks_config.dap_integration.enabled,
+                pre_debug_tasks = tasks_config.dap_integration.pre_debug_tasks,
+                block_debug_on_task_failure = tasks_config.dap_integration.block_on_failure,
+                timeout_seconds = tasks_config.dap_integration.timeout_seconds
+            })
+        end
+    end
+    
+    return true
 end
 
 function M.nuget_auth()
     nuget_client.authenticate()
+end
+
+-- Task system functions
+function M.run_task(task_name, options, callback)
+    return tasks.run_task(task_name, options, callback)
+end
+
+function M.run_tasks(task_names, options, callback)
+    return tasks.execute_tasks(task_names, options, callback)
+end
+
+function M.cancel_tasks()
+    return tasks.cancel_execution()
+end
+
+function M.get_available_tasks()
+    return tasks.get_available_tasks()
+end
+
+function M.task_status()
+    return tasks.status()
+end
+
+function M.create_task_config(format)
+    return tasks.create_example_config(format)
+end
+
+-- UI functions
+function M.show_config()
+    ui.show_config()
+end
+
+function M.show_config_section(section)
+    ui.show_config_section(section)
 end
 
 return M

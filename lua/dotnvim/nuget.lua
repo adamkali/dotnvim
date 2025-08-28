@@ -1,26 +1,30 @@
+local config_manager = require('dotnvim.config_manager')
+
 local NugetClient = {}
 
 NugetClient.authenticate = function()
     local Job = require('plenary.job')
-    vim.print(vim.g.DotnvimConfig.nuget.authenticators)
-    for _, authenticator in ipairs(vim.g.DotnvimConfig.nuget.authenticators) do
+    local nuget_config = config_manager.get_nuget_config()
+    vim.print(nuget_config.authenticators)
+    for _, authenticator in ipairs(nuget_config.authenticators) do
         vim.print(authenticator)
         Job:new({
             command = authenticator.cmd,
             args = authenticator.args,
             on_exit = function(j, return_val)
                 local cmd = authenticator.cmd .. " " .. table.concat(authenticator.args, " ")
+                local logger = config_manager.get_logger()
                 if return_val == 0 then
-                    vim.g.Dotnvim.log.info("Command executed successfully: " .. cmd)
+                    logger.info("Command executed successfully: " .. cmd)
                     print("Command executed successfully: " .. cmd)
                 else
-                    vim.g.Dotnvim.log.error("Command execution failed: " .. cmd)
-                    vim.g.Dotnvim.log.error("Error: " .. table.concat(j:stderr_result(), "\n"))
+                    logger.error("Command execution failed: " .. cmd)
+                    logger.error("Error: " .. table.concat(j:stderr_result(), "\n"))
                     print("Command execution failed: " .. cmd)
                 end
             end,
             on_stderr = function(_, data)
-                vim.g.Dotnvim.log.error("stderr: " .. data)
+                config_manager.get_logger().error("stderr: " .. data)
             end,
         }):start()
     end

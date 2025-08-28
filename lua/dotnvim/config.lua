@@ -1,11 +1,13 @@
 local dotnvim_util = require('dotnvim.utils')
+local config_manager = require('dotnvim.config_manager')
 local configurator = {}
 local load_module = dotnvim_util.load_module
 
 configurator.configurate_adapter = function()
     local dap = load_module("dap", "dotnvim.dap")
-    dap.adapters.coreclr = vim.g.DotnvimConfig.dap.adapter
-    dap.adapters.netcoredbg = vim.g.DotnvimConfig.dap.adapter
+    local dap_config = config_manager.get_dap_config()
+    dap.adapters.coreclr = dap_config.adapter
+    dap.adapters.netcoredbg = dap_config.adapter
 end
 
 -- aka the boulivard of broken dreams
